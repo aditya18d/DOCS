@@ -1,0 +1,31 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn import metrics as met
+
+# Load dataset with headers
+headers = ['sepal-length', 'sepal-width', 'petal-length', 'petal-width', 'Class']
+df = pd.read_csv('/content/iris.csv', names=headers)
+
+# Feature and label separation
+X = df.iloc[:, :-1].values
+y = pd.factorize(df['Class'])[0]  # encode class labels to integers
+
+# Split dataset
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=7)
+
+# KNN function
+def KNNClassify(x, X_train, y_train, k=8):
+    distances = [((label, np.linalg.norm(x - train_point)))
+                 for train_point, label in zip(X_train, y_train)]
+    distances.sort(key=lambda tup: tup[1])
+    neighbors = [label for label, _ in distances[:k]]
+    return np.bincount(neighbors).argmax()
+
+# Predict all test points
+predictions = [KNNClassify(x, X_train, y_train) for x in X_test]
+
+# Accuracy and confusion matrix
+accuracy = met.accuracy_score(y_test, predictions)
+print("Accuracy =", accuracy * 100)
+print("Confusion Matrix:\n", met.confusion_matrix(y_test, predictions))
