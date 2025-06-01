@@ -1,0 +1,71 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+from google.colab import files
+uploaded = files.upload()
+
+df = pd.read_csv("temps.csv")
+
+print(df.head())
+print(df.info())
+print(df.describe())
+
+plt.figure(figsize=(10,5))
+plt.scatter(range(1, 349), df['actual'])
+plt.title('Actual Temperature')
+plt.show()
+
+plt.scatter(range(1, 349), df['temp_1'])
+plt.title('Temp 1')
+plt.show()
+
+plt.scatter(range(1, 349), df['temp_2'])
+plt.title('Temp 2')
+plt.show()
+
+plt.scatter(range(1, 349), df['friend'])
+plt.title('Friend Forecast')
+plt.show()
+
+plt.scatter(range(1, 349), df['forecast_noaa'])
+plt.title('NOAA Forecast')
+plt.show()
+
+df = pd.get_dummies(df)  # Converts 'week' into dummy variables
+
+y = np.array(df['actual'])
+
+# Drop target and unnecessary forecast columns
+df = df.drop(['actual', 'forecast_noaa', 'forecast_acc', 'forecast_under'], axis=1)
+
+X = np.array(df)
+
+from sklearn.model_selection import train_test_split
+
+Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, test_size=0.25, random_state=5)
+
+from sklearn.ensemble import RandomForestRegressor
+
+rf = RandomForestRegressor(n_estimators=1000, random_state=5)
+rf.fit(Xtrain, ytrain)
+
+
+pred = rf.predict(Xtest)
+
+
+from sklearn import metrics as met
+
+# Mean Absolute Error
+errors = abs(pred - ytest)
+print("Mean Absolute Error:", round(np.mean(errors), 2), "degrees")
+
+# Median Absolute Error
+print("Median Absolute Error:", met.median_absolute_error(ytest, pred))
+
+# MAPE and Accuracy
+mape = 100 * errors / ytest
+accuracy = 100 - np.mean(mape)
+print("Accuracy:", round(accuracy, 2), "%")

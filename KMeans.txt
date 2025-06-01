@@ -1,0 +1,92 @@
+import pandas as pd
+
+df = pd.read_csv('/content/Country_data.csv')
+df.head()
+df.describe()
+
+df['child_mort'].isnull().sum()
+df.info()
+
+df.select_dtypes(include=['number']).corr()
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Only select numeric columns
+corr_matrix = df.select_dtypes(include='number').corr()
+
+# Plot heatmap
+sns.heatmap(corr_matrix, annot=True, cmap='viridis')  # Note: it's 'viridis', not 'virdis'
+plt.show()
+
+
+import plotly.express as px
+px.histogram(data_frame=df,x = 'gdpp',nbins=167,opacity=0.75,barmode='overlay')
+
+
+df['child_mort'].mean()
+df['child_mort'].max()
+df.drop('country',axis=1)
+
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler()
+scaled_data = scaler.fit_transform(df.drop('country',axis=1))
+
+scaled_data
+
+df.drop('country',axis=1).columns
+
+data=pd.DataFrame(scaled_data,columns=df.drop('country',axis=1).columns)
+
+data.head()
+
+data['country'] = df['country']
+
+data.head()
+
+px.histogram(data_frame=df,x = 'gdpp',nbins=167,opacity=0.75,barmode='overlay')
+
+import matplotlib.pyplot as plt
+
+px.scatter(data_frame=data,x='gdpp',y='child_mort',color='country')
+
+from sklearn.cluster import KMeans
+
+k_means = KMeans(n_clusters=5)
+k_means.fit(data.drop('country',axis=1))
+
+k_means.labels_
+
+k_means.inertia_
+
+k_means = KMeans(n_clusters=4)
+k_means.fit(data.drop('country',axis=1))
+k_means.labels_
+
+
+k_means.inertia_
+
+
+K = range(1,10)
+ssd = []
+for k in K:
+  k_means = KMeans(n_clusters=k)
+  k_means.fit(data.drop('country',axis=1))
+  ssd.append(k_means.inertia_)
+
+ssd
+
+plt.figure(figsize=(10,6))
+plt.plot(K, ssd, 'ro-.')
+plt.xlabel('k')
+plt.ylabel('Sum of Squared Distance')
+plt.title('Elbow Method For Optimal k')
+plt.show()
+
+k_means = KMeans(n_clusters=3)
+k_means.fit(data.drop('country',axis=1))
+pred = k_means.labels_
+
+
+px.scatter(data_frame=data,x='child_mort',y='income',color=pred)
