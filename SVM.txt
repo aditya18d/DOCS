@@ -1,0 +1,49 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix, accuracy_score
+import matplotlib.pyplot as plt
+from google.colab import files
+
+# Upload CSV
+uploaded = files.upload()
+
+# Load dataset
+df = pd.read_csv('Social_Network_Ads.csv')
+
+# Select features and label
+X = df.iloc[:, 2:4].values  # Age, EstimatedSalary
+y = df.iloc[:, 4].values    # Purchased
+
+# Visualize the data
+plt.scatter(X[:, 0], X[:, 1], c=y, marker='x')
+plt.xlabel('Age')
+plt.ylabel('Estimated Salary')
+plt.title('User Distribution')
+plt.show()
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Feature scaling
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# Function to train and evaluate SVM
+def train_evaluate_svm(kernel_type, **kwargs):
+    print(f"\nKernel: {kernel_type}, Params: {kwargs}")
+    classifier = SVC(kernel=kernel_type, random_state=0, **kwargs)
+    classifier.fit(X_train, y_train)
+    y_pred = classifier.predict(X_test)
+    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+
+# Evaluate different kernels
+train_evaluate_svm('linear')
+train_evaluate_svm('rbf', C=3)
+train_evaluate_svm('poly', degree=2)
+train_evaluate_svm('poly', degree=3)
